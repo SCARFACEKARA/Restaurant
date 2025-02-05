@@ -45,7 +45,7 @@ class ApiUserController extends AbstractController
      * 📌 Connexion utilisateur
      */
     #[Route('/login', name: 'api_user_login', methods: ['POST'])]
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, UserRepository $userRepository): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -53,26 +53,13 @@ class ApiUserController extends AbstractController
             return $this->json(['error' => 'Missing fields: email, password'], Response::HTTP_BAD_REQUEST);
         }
 
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            return $this->json(['error' => 'Invalid email format'], Response::HTTP_BAD_REQUEST);
+        $user = $userRepository->findOneBy(['email' => $data['email']]);
+
+        if (!$user || !password_verify($data['mdp'], $user->getMdp())) {
+            return $this->json(['error' => 'Invalid email or password'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $user = $this->$userRepository->findOneBy(['email' => $data['email']]);
-
-        if (!$user || !$this->passwordEncoder->isPasswordValid($user, $data['mdp'])) {
-            return $this->json(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
-        }
-
-        // Générez un token JWT ici si vous utilisez une authentification basée sur un token
-
-        return $this->json([
-            'message' => 'Login successful',
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'role' => $user->getRole()->value
-            ],
-        ], Response::HTTP_OK);
+        return $this->json(['message' => 'Login successful', 'user' => $user], Response::HTTP_OK, [], ['groups' => ['users.list']]);
     }
 
     /**
@@ -119,8 +106,8 @@ class ApiUserController extends AbstractController
             $user->setEmail($data['email']);
         }
 
-        if (isset($data['password']) && !empty($data['password'])) {
-            $user->setMdp(password_hash($data['password'], PASSWORD_BCRYPT));
+        if (isset($data['mdp']) && !empty($data['mdp'])) {
+            $user->setMdp(password_hash($data['mdp'], PASSWORD_BCRYPT));
         }
 
         if (isset($data['role'])) {
