@@ -22,7 +22,7 @@ class Plat
     #[ORM\Column(type: 'time')]
     private \DateTimeInterface $tempsCuisson;
 
-    #[ORM\OneToMany(targetEntity: IngredientPlat::class, mappedBy: 'plat', cascade: ['persist', 'remove'])]
+    // #[ORM\OneToMany(targetEntity: IngredientPlat::class, mappedBy: 'plat', cascade: ['persist', 'remove'])]
     private Collection $ingredientsPlats;
 
     public function __construct()

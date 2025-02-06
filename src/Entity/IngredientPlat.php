@@ -24,7 +24,7 @@ class IngredientPlat
     /**
      * @var Collection<int, Plat>
      */
-    #[ORM\OneToMany(targetEntity: Plat::class, mappedBy: 'ingredientsPlats')]
+    // #[ORM\OneToMany(targetEntity: Plat::class, mappedBy: 'ingredientsPlats')]
     private Collection $plats;
 
     public function __construct()
