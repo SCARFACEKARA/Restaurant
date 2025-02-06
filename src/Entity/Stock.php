@@ -12,7 +12,7 @@ class Stock
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    // #[ORM\ManyToOne(targetEntity: Ingredient::class)]
+    #[ORM\ManyToOne(targetEntity: Ingredient::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Ingredient $ingredient;
 
