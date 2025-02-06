@@ -24,11 +24,52 @@ class ApiStockController extends AbstractController
         $this->entityManager = $entityManager;
     }
 
-    #[Route('/all', name: 'api_stock_list', methods: ['GET'])]
-    public function findAll(StockRepository $stockRepository): JsonResponse
+    #[Route('/all_basic', name: 'api_stock_list_basic', methods: ['GET'])]
+    public function findAllBasic(StockRepository $stockRepository): JsonResponse
     {
         return $this->json($stockRepository->findAll(), Response::HTTP_OK);
     }
+
+    
+    #[Route('/all', name: 'api_stock_list', methods: ['GET'])]
+    public function findAll(StockRepository $stockRepository): JsonResponse
+    {
+        $stocks = $stockRepository->findAll();
+    
+        $stockSummary = [];
+    
+        foreach ($stocks as $stock) {
+            $ingredientId = $stock->getIngredient()->getId();
+            $ingredientNom = $stock->getIngredient()->getNomIngredient();
+            $ingredientImage = $stock->getIngredient()->getNomImage();
+            $quantite = $stock->getQuantite();
+            $status = $stock->getStatus()->value; // Convertir en string
+    
+            // Vérifier si l'ingrédient existe déjà dans le tableau
+            if (!isset($stockSummary[$ingredientId])) {
+                $stockSummary[$ingredientId] = [
+                    'id' => $ingredientId,
+                    'ingredient' => [
+                        'id' => $ingredientId,
+                        'nomIngredient' => $ingredientNom,
+                        'nomImage' => $ingredientImage
+                    ],
+                    'quantite' => 0 // Initialisation à zéro
+                ];
+            }
+    
+            // Ajouter ou soustraire la quantité selon le statut
+            if ($status === StockStatus::SORTIE->value) {
+                $stockSummary[$ingredientId]['quantite'] -= $quantite; // Soustraction
+            } elseif ($status === StockStatus::ENTREE->value) {
+                $stockSummary[$ingredientId]['quantite'] += $quantite; // Addition
+            }
+        }
+    
+        return $this->json(array_values($stockSummary), Response::HTTP_OK);
+    }
+      
+    
 
     #[Route('/create', name: 'api_stock_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
