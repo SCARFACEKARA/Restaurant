@@ -2,7 +2,6 @@
 
 namespace App\Controller\API\Admin;
 
-
 use App\Entity\IngredientPlat;
 use App\Entity\Plat;
 use App\Entity\Ingredient;
@@ -30,46 +29,78 @@ class ApiIngredientPlatController extends AbstractController
     #[Route('/all', name: 'api_ingredient_plat_list', methods: ['GET'])]
     public function findAll(IngredientPlatRepository $ingredientPlatRepository): JsonResponse
     {
-        return $this->json($ingredientPlatRepository->findAll(), Response::HTTP_OK);
+        $ingredientPlats = $ingredientPlatRepository->findAll();
+
+        $data = array_map(function (IngredientPlat $ingredientPlat) {
+            return [
+                'id' => $ingredientPlat->getId(),
+                'ingredient' => [
+                    'id' => $ingredientPlat->getIngredient()->getId(),
+                    'nomIngredient' => $ingredientPlat->getIngredient()->getNomIngredient(),
+                    'nomImage' => $ingredientPlat->getIngredient()->getNomImage(),
+                ],
+                'quantite' => $ingredientPlat->getQuantite(),
+            ];
+        }, $ingredientPlats);
+
+        return $this->json($data, Response::HTTP_OK);
     }
 
-    /**
+        /**
      * 📌 Ajouter un ingrédient à un plat
      */
     #[Route('/create', name: 'api_ingredient_plat_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        try {
+            $data = json_decode($request->getContent(), true);
 
-        $plat = $this->entityManager->getRepository(Plat::class)->find($data['idPlat']);
-        if (!$plat) {
-            return $this->json(['error' => 'Plat not found'], Response::HTTP_NOT_FOUND);
+            if (!isset($data['idPlat'], $data['idIngredient'])) {
+                return $this->json(['error' => 'Missing required fields: idPlat, idIngredient'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $plat = $this->entityManager->getRepository(Plat::class)->find($data['idPlat']);
+            if (!$plat) {
+                return $this->json(['error' => 'Plat not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            $ingredient = $this->entityManager->getRepository(Ingredient::class)->find($data['idIngredient']);
+            if (!$ingredient) {
+                return $this->json(['error' => 'Ingredient not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            // Vérifier si l'association existe déjà
+            $existingIngredientPlat = $this->entityManager->getRepository(IngredientPlat::class)->findOneBy([
+                'plat' => $plat,
+                'ingredient' => $ingredient,
+            ]);
+
+            if ($existingIngredientPlat) {
+                return $this->json(['error' => 'This ingredient is already associated with this plat'], Response::HTTP_CONFLICT);
+            }
+
+            $ingredientPlat = new IngredientPlat();
+            $ingredientPlat->setPlat($plat);
+            $ingredientPlat->setIngredient($ingredient);
+            $ingredientPlat->setQuantite(0); // ✅ Quantité mise par défaut à 0
+
+            $this->entityManager->persist($ingredientPlat);
+            $this->entityManager->flush();
+
+            return $this->json([
+                'id' => $ingredientPlat->getId(),
+                'ingredient' => [
+                    'id' => $ingredientPlat->getIngredient()->getId(),
+                    'nomIngredient' => $ingredientPlat->getIngredient()->getNomIngredient(),
+                    'nomImage' => $ingredientPlat->getIngredient()->getNomImage(),
+                ],
+                'quantite' => $ingredientPlat->getQuantite(),
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'An unexpected error occurred', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $ingredient = $this->entityManager->getRepository(Ingredient::class)->find($data['idIngredient']);
-        if (!$ingredient) {
-            return $this->json(['error' => 'Ingredient not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        // Vérifier si l'association existe déjà
-        $existingIngredientPlat = $this->entityManager->getRepository(IngredientPlat::class)->findOneBy([
-            'plat' => $plat,
-            'ingredient' => $ingredient,
-        ]);
-
-        if ($existingIngredientPlat) {
-            return $this->json(['error' => 'This ingredient is already associated with this plat'], Response::HTTP_CONFLICT);
-        }
-
-        $ingredientPlat = new IngredientPlat();
-        $ingredientPlat->setPlat($plat);
-        $ingredientPlat->setIngredient($ingredient);
-
-        $this->entityManager->persist($ingredientPlat);
-        $this->entityManager->flush();
-
-        return $this->json($ingredientPlat, Response::HTTP_CREATED);
     }
+
 
     /**
      * 📌 Supprimer un ingrédient d'un plat

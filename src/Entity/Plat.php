@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity]
 class Plat
@@ -11,26 +13,30 @@ class Plat
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    #[Groups(["plat:read", "plat:write"])]
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(["plat:read", "plat:write"])]
     private string $nomPlat;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private float $prixUnitaire;
+    #[Groups(["plat:read", "plat:write"])]
+    private string $prixUnitaire;
 
     #[ORM\Column(type: 'time')]
+    #[Groups(["plat:read", "plat:write"])]
     private \DateTimeInterface $tempsCuisson;
 
-    // #[ORM\OneToMany(targetEntity: IngredientPlat::class, mappedBy: 'plat', cascade: ['persist', 'remove'])]
-    private Collection $ingredientsPlats;
+    #[ORM\OneToMany(targetEntity: IngredientPlat::class, mappedBy: 'plat', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $ingredientsPlats; // ❌ Supprimé des @Groups pour éviter la boucle infinie
 
     public function __construct()
     {
         $this->ingredientsPlats = new ArrayCollection();
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -46,12 +52,12 @@ class Plat
         return $this;
     }
 
-    public function getPrixUnitaire(): float
+    public function getPrixUnitaire(): string
     {
         return $this->prixUnitaire;
     }
 
-    public function setPrixUnitaire(float $prixUnitaire): self
+    public function setPrixUnitaire(string $prixUnitaire): self
     {
         $this->prixUnitaire = $prixUnitaire;
         return $this;

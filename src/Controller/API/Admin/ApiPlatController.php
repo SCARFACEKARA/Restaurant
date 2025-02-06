@@ -22,12 +22,38 @@ class ApiPlatController extends AbstractController
         $this->entityManager = $entityManager;
     }
 
-    #[Route('/all', name: 'api_plat_list', methods: ['GET'])]
-    public function findAll(PlatRepository $platRepository): JsonResponse
+    #[Route('/all-detailed', name: 'api_plat_list_detailed', methods: ['GET'])]
+    public function findAllDetailed(PlatRepository $platRepository): JsonResponse
     {
-        return $this->json($platRepository->findAll(), Response::HTTP_OK);
+        $plats = $platRepository->findAll();
+        $data = [];
+
+        foreach ($plats as $plat) {
+            $ingredients = [];
+
+            foreach ($plat->getIngredientsPlats() as $ingredientPlat) {
+                $ingredient = $ingredientPlat->getIngredient();
+                $ingredients[] = [
+                    'id' => $ingredient->getId(),
+                    'nomIngredient' => $ingredient->getNomIngredient(),
+                    'nomImage' => $ingredient->getNomImage(),
+                    'quantite' => $ingredientPlat->getQuantite()
+                ];
+            }
+
+            $data[] = [
+                'id' => $plat->getId(),
+                'nomPlat' => $plat->getNomPlat(),
+                'prixUnitaire' => $plat->getPrixUnitaire(),
+                'tempsCuisson' => $plat->getTempsCuisson()->format('H:i:s'),
+                'ingredients' => $ingredients
+            ];
+        }
+
+        return $this->json($data, Response::HTTP_OK);
     }
 
+    
     #[Route('/{id}', name: 'api_plat_show', methods: ['GET'])]
     public function show(Plat $plat): JsonResponse
     {
