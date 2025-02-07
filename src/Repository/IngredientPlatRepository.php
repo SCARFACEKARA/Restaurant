@@ -16,28 +16,15 @@ class IngredientPlatRepository extends ServiceEntityRepository
         parent::__construct($registry, IngredientPlat::class);
     }
 
-//    /**
-//     * @return IngredientPlat[] Returns an array of IngredientPlat objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('i')
-//            ->andWhere('i.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('i.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?IngredientPlat
-//    {
-//        return $this->createQueryBuilder('i')
-//            ->andWhere('i.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * Trouver tous les ingrédients d'un plat donné
+     */
+    public function findByPlatId(int $platId): array
+    {
+        return $this->createQueryBuilder('ip')
+            ->andWhere('ip.plat = :platId')
+            ->setParameter('platId', $platId)
+            ->getQuery()
+            ->getResult();
+    }
 }
