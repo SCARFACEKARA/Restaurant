@@ -3,6 +3,7 @@
 namespace App\Controller\API\Admin;
 
 use App\Entity\Commande;
+use App\Entity\User;
 use App\Entity\DetailCommande;
 use App\Entity\Plat;
 use App\Enum\CommandeStatus;
@@ -29,29 +30,50 @@ class ApiCommandeController extends AbstractController
     {
         $commandes = $commandeRepository->findAll();
         $data = [];
-
+    
         foreach ($commandes as $commande) {
             $details = [];
+            $montant = 0;
             foreach ($commande->getDetailsCommande() as $detail) {
+                $plat = $detail->getPlat();
+                $montant += $plat->getPrixUnitaire(); 
                 $details[] = [
                     'id' => $detail->getId(),
-                    'plat' => $detail->getPlat()->getNomPlat(),
+                    'plat' => [
+                        'id' => $plat->getId(),
+                        'nomPlat' => $plat->getNomPlat(),
+                        'prixUnitaire' => $plat->getPrixUnitaire(),
+                        'tempsCuisson' => $plat->getTempsCuisson()->format('H:i:s'),
+                        'ingredients' => array_map(function ($ingredientPlat) {
+                            return [
+                                'id' => $ingredientPlat->getIngredient()->getId(),
+                                'nomIngredient' => $ingredientPlat->getIngredient()->getNomIngredient(),
+                                'nomImage' => $ingredientPlat->getIngredient()->getNomImage(),
+                                'quantite' => $ingredientPlat->getQuantite(),
+                            ];
+                        }, $plat->getIngredientsPlats()->toArray()),
+                    ],
                     'status' => $detail->getStatus()->value,
                 ];
             }
-
+    
             $data[] = [
                 'id' => $commande->getId(),
-                'client' => $commande->getClient()->getEmail(),
+                'client' => [
+                    'id' => $commande->getClient()->getId(),
+                    'email' => $commande->getClient()->getEmail(),
+                    'role' => $commande->getClient()->getRole()->value,
+                ],
                 'dateCommande' => $commande->getDateCommande()->format('Y-m-d'),
-                'montantTotal' => $commande->getMontantTotal(),
+                'montantTotal' => $montant,
                 'status' => $commande->getStatus()->value,
                 'details' => $details,
             ];
         }
-
+    
         return $this->json($data, Response::HTTP_OK);
     }
+    
 
     #[Route('/{id}', name: 'api_commande_show', methods: ['GET'])]
     public function show(Commande $commande): JsonResponse

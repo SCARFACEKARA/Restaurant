@@ -29,8 +29,8 @@ class ApiDetailCommandeController extends AbstractController
         return $this->json($detailCommande, Response::HTTP_OK);
     }
 
-    #[Route('/create', name: 'api_detail_commande_create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    #[Route('/createOne', name: 'api_detail_commande_create_one', methods: ['POST'])]
+    public function createOne(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -51,6 +51,44 @@ class ApiDetailCommandeController extends AbstractController
 
         return $this->json($detailCommande, Response::HTTP_CREATED);
     }
+
+    #[Route('/create', name: 'api_detail_commande_create', methods: ['POST'])]
+    public function create(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Invalid data format, expected an array'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $createdDetails = [];
+
+        foreach ($data as $item) {
+            if (!isset($item['idCommande'], $item['idPlat'], $item['status'])) {
+                return $this->json(['error' => 'Missing required fields'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $commande = $this->entityManager->getRepository(Commande::class)->find($item['idCommande']);
+            $plat = $this->entityManager->getRepository(Plat::class)->find($item['idPlat']);
+
+            if (!$commande || !$plat) {
+                return $this->json(['error' => 'Commande or Plat not found'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $detailCommande = new DetailCommande();
+            $detailCommande->setCommande($commande);
+            $detailCommande->setPlat($plat);
+            $detailCommande->setStatus(DetailCommandeStatus::from($item['status']));
+
+            $this->entityManager->persist($detailCommande);
+            $createdDetails[] = $detailCommande;
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json($createdDetails, Response::HTTP_CREATED);
+    }
+
 
     #[Route('/edit/{id}', name: 'api_detail_commande_edit', methods: ['PUT'])]
     public function edit(Request $request, DetailCommande $detailCommande): JsonResponse

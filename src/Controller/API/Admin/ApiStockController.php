@@ -54,7 +54,7 @@ class ApiStockController extends AbstractController
                         'nomIngredient' => $ingredientNom,
                         'nomImage' => $ingredientImage
                     ],
-                    'quantite' => 0 // Initialisation à zéro
+                    'quantite' => 1 // Initialisation à zéro
                 ];
             }
     
