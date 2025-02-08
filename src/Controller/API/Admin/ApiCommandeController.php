@@ -87,7 +87,7 @@ class ApiCommandeController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $commande = new Commande();
-        $commande->setDateCommande(new \DateTime($data['dateCommande']));
+        $commande->setDateCommande(isset($data['dateCommande']) ? new \DateTime($data['dateCommande']) : new \DateTime());
         $commande->setMontantTotal($data['montantTotal']);
         $commande->setStatus(CommandeStatus::from($data['status']));
         $commande->setClient($this->entityManager->getRepository(User::class)->find($data['idClient']));
@@ -97,6 +97,7 @@ class ApiCommandeController extends AbstractController
 
         return $this->json($commande, Response::HTTP_CREATED);
     }
+
 
     #[Route('/edit/{id}', name: 'api_commande_edit', methods: ['PUT'])]
     public function edit(Request $request, Commande $commande): JsonResponse

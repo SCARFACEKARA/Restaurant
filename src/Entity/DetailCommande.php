@@ -17,7 +17,9 @@ class DetailCommande
 
     #[ORM\ManyToOne(targetEntity: Commande::class, inversedBy: 'detailsCommande')]
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+    #[Groups(["detailCommande:read"])]
     private ?Commande $commande = null;
+    
 
     #[ORM\ManyToOne(targetEntity: Plat::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]

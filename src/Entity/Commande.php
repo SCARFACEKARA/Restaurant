@@ -35,7 +35,9 @@ class Commande
     private CommandeStatus $status;
 
     #[ORM\OneToMany(targetEntity: DetailCommande::class, mappedBy: 'commande', cascade: ['persist', 'remove'])]
+    #[Groups(["commande:read"])]
     private Collection $detailsCommande;
+    
 
     public function __construct()
     {

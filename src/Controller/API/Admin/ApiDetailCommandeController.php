@@ -49,7 +49,7 @@ class ApiDetailCommandeController extends AbstractController
         $this->entityManager->persist($detailCommande);
         $this->entityManager->flush();
 
-        return $this->json($detailCommande, Response::HTTP_CREATED);
+        return $this->json($detailCommande, Response::HTTP_OK, [], ['groups' => 'detailCommande:read']);
     }
 
     #[Route('/create', name: 'api_detail_commande_create', methods: ['POST'])]
@@ -86,7 +86,8 @@ class ApiDetailCommandeController extends AbstractController
 
         $this->entityManager->flush();
 
-        return $this->json($createdDetails, Response::HTTP_CREATED);
+        return $this->json($createdDetails, Response::HTTP_OK, [], ['groups' => 'detailCommande:read']);
+
     }
 
 
