@@ -40,7 +40,7 @@ class ApiUserController extends AbstractController
     {
         return $this->json($user, Response::HTTP_OK, [], ['groups' => ['users.list']]);
     }
-
+    /*testtsetsetsetsetstest*/ 
     /**
      * 📌 Connexion utilisateur
      */
