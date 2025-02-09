@@ -20,6 +20,6 @@ COPY . /app
 RUN composer install --ignore-platform-reqs
 
 # Exposer le port
-EXPOSE 9000
+EXPOSE 8000
 
 CMD ["php-fpm"]
