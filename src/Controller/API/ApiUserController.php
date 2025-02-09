@@ -25,6 +25,17 @@ class ApiUserController extends AbstractController
     /**
      * 📌 Récupérer tous les utilisateurs (sans pagination)
      */
+    #[Route('/test', name: 'api_test', methods: ['GET'])]
+    public function test(UserRepository $userRepository): JsonResponse
+    {
+        $message = "Bienvenue sur Votre API , true";
+        return $this->json($message, Response::HTTP_OK, []);
+    }
+
+
+    /**
+     * 📌 Récupérer tous les utilisateurs (sans pagination)
+     */
     #[Route('/all', name: 'api_user_list', methods: ['GET'])]
     public function findAllUsers(UserRepository $userRepository): JsonResponse
     {
