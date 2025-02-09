@@ -92,19 +92,27 @@ class ApiDetailCommandeController extends AbstractController
 
 
     #[Route('/edit/{id}', name: 'api_detail_commande_edit', methods: ['PUT'])]
-    public function edit(Request $request, DetailCommande $detailCommande): JsonResponse
+    public function edit(Request $request, DetailCommande $detailCommande, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
+    
         if (isset($data['status'])) {
             $detailCommande->setStatus(DetailCommandeStatus::from($data['status']));
         }
-
-        $this->entityManager->flush();
-
+    
+        if (isset($data['dateDeFinition'])) {
+            try {
+                $date = new DateTime($data['dateDeFinition']);
+                $detailCommande->setDateDeFinition($date);
+            } catch (\Exception $e) {
+                return new JsonResponse(['error' => 'Invalid date format'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+        $entityManager->flush();
         return $this->json($detailCommande, Response::HTTP_OK);
     }
 
+    
     #[Route('/delete/{id}', name: 'api_detail_commande_delete', methods: ['DELETE'])]
     public function delete(DetailCommande $detailCommande): JsonResponse
     {

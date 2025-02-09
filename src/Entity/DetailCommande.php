@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\DetailCommandeStatus;
 use Symfony\Component\Serializer\Annotation\Groups;
+use DateTimeInterface;
 
 #[ORM\Entity]
 class DetailCommande
@@ -20,7 +21,6 @@ class DetailCommande
     #[Groups(["detailCommande:read"])]
     private ?Commande $commande = null;
     
-
     #[ORM\ManyToOne(targetEntity: Plat::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     #[Groups(["detailCommande:read"])]
@@ -29,6 +29,10 @@ class DetailCommande
     #[ORM\Column(type: 'string', enumType: DetailCommandeStatus::class)]
     #[Groups(["detailCommande:read"])]
     private DetailCommandeStatus $status;
+    
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[Groups(["detailCommande:read"])]
+    private ?DateTimeInterface $dateDeFinition = null;
 
     public function getId(): ?int
     {
@@ -65,6 +69,17 @@ class DetailCommande
     public function setStatus(DetailCommandeStatus $status): self
     {
         $this->status = $status;
+        return $this;
+    }
+
+    public function getDateDeFinition(): ?DateTimeInterface
+    {
+        return $this->dateDeFinition;
+    }
+
+    public function setDateDeFinition(?DateTimeInterface $dateDeFinition): self
+    {
+        $this->dateDeFinition = $dateDeFinition;
         return $this;
     }
 }

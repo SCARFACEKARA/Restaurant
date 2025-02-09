@@ -82,7 +82,7 @@ class ApiIngredientPlatController extends AbstractController
             $ingredientPlat = new IngredientPlat();
             $ingredientPlat->setPlat($plat);
             $ingredientPlat->setIngredient($ingredient);
-            $ingredientPlat->setQuantite(0); // ✅ Quantité mise par défaut à 0
+            $ingredientPlat->setQuantite(1); // ✅ Quantité mise par défaut à 0
 
             $this->entityManager->persist($ingredientPlat);
             $this->entityManager->flush();

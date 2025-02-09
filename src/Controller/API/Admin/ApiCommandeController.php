@@ -30,14 +30,16 @@ class ApiCommandeController extends AbstractController
     {
         $commandes = $commandeRepository->findAll();
         $data = [];
-    
+
         foreach ($commandes as $commande) {
             $details = [];
             $montant = 0;
+
             foreach ($commande->getDetailsCommande() as $detail) {
                 $plat = $detail->getPlat();
                 $montant += $plat->getPrixUnitaire(); 
-                $details[] = [
+
+                $detailArray = [
                     'id' => $detail->getId(),
                     'plat' => [
                         'id' => $plat->getId(),
@@ -55,8 +57,14 @@ class ApiCommandeController extends AbstractController
                     ],
                     'status' => $detail->getStatus()->value,
                 ];
+
+                if ($detail->getDateDeFinition() !== null) {
+                    $detailArray['dateDeFinition'] = $detail->getDateDeFinition()->format('Y-m-d H:i:s');
+                }
+
+                $details[] = $detailArray;
             }
-    
+
             $data[] = [
                 'id' => $commande->getId(),
                 'client' => [
@@ -70,10 +78,66 @@ class ApiCommandeController extends AbstractController
                 'details' => $details,
             ];
         }
-    
+
         return $this->json($data, Response::HTTP_OK);
     }
-    
+
+    // #[Route('/all-en-cours', name: 'api_commande_list_en_cours', methods: ['GET'])]
+    // public function findAlld(CommandeRepository $commandeRepository): JsonResponse
+    // {
+    //     $commandes = $commandeRepository->findAll();
+    //     $data = [];
+
+    //     foreach ($commandes as $commande) {
+    //         $details = [];
+    //         $montant = 0;
+
+    //         foreach ($commande->getDetailsCommande() as $detail) {
+    //             $plat = $detail->getPlat();
+    //             $montant += $plat->getPrixUnitaire(); 
+
+    //             $detailArray = [
+    //                 'id' => $detail->getId(),
+    //                 'plat' => [
+    //                     'id' => $plat->getId(),
+    //                     'nomPlat' => $plat->getNomPlat(),
+    //                     'prixUnitaire' => $plat->getPrixUnitaire(),
+    //                     'tempsCuisson' => $plat->getTempsCuisson()->format('H:i:s'),
+    //                     'ingredients' => array_map(function ($ingredientPlat) {
+    //                         return [
+    //                             'id' => $ingredientPlat->getIngredient()->getId(),
+    //                             'nomIngredient' => $ingredientPlat->getIngredient()->getNomIngredient(),
+    //                             'nomImage' => $ingredientPlat->getIngredient()->getNomImage(),
+    //                             'quantite' => $ingredientPlat->getQuantite(),
+    //                         ];
+    //                     }, $plat->getIngredientsPlats()->toArray()),
+    //                 ],
+    //                 'status' => $detail->getStatus()->value,
+    //             ];
+
+    //             if ($detail->getDateDeFinition() !== null) {
+    //                 $detailArray['dateDeFinition'] = $detail->getDateDeFinition()->format('Y-m-d H:i:s');
+    //             }
+
+    //             $details[] = $detailArray;
+    //         }
+
+    //         $data[] = [
+    //             'id' => $commande->getId(),
+    //             'client' => [
+    //                 'id' => $commande->getClient()->getId(),
+    //                 'email' => $commande->getClient()->getEmail(),
+    //                 'role' => $commande->getClient()->getRole()->value,
+    //             ],
+    //             'dateCommande' => $commande->getDateCommande()->format('Y-m-d'),
+    //             'montantTotal' => $montant,
+    //             'status' => $commande->getStatus()->value,
+    //             'details' => $details,
+    //         ];
+    //     }
+
+    //     return $this->json($data, Response::HTTP_OK);
+    // }
 
     #[Route('/{id}', name: 'api_commande_show', methods: ['GET'])]
     public function show(Commande $commande): JsonResponse
